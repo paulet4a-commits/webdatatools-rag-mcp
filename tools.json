@@ -1,0 +1,415 @@
+[
+  {
+    "name": "ai_web_search",
+    "actor": "webdatatools~ai-web-search",
+    "title": "AI Web Search & Read: Google results as clean Markdown",
+    "description": "AI Web Search runs a Google search, fetches the top organic results and returns clean Markdown per result — one call turns a question into LLM-ready context for agents, RAG and MCP. Billed to your own Apify account: ~$0.005 per result (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Search query — Enter a single question or search phrase, e.g. what is web scraping. Ignored if \"queries\" or \"urls\" is also set. One SERP is fetched and the top organic results are read and returned as Markdown. Example: \"what is web scraping\".",
+          "minLength": 1
+        },
+        "queries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Search queries (batch) — Enter multiple search queries to run in one call, e.g. best crm for startups. Overrides \"query\" when non-empty. Leave empty to use \"query\" instead. Example: [\"best crm for startups\"].",
+          "minItems": 1
+        },
+        "urls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "URLs to read directly (skip search) — Enter specific page URLs to fetch and convert to Markdown, e.g. https://docs.apify.com/platform. When set, no Google search is performed at all — this becomes a pure URL-to-Markdown reader.",
+          "minItems": 1
+        },
+        "maxResults": {
+          "type": "integer",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Max results per query — Enter how many organic results to read per query, e.g. 3. Each result is one billed dataset row, so 3 results costs about 3x the per-result price."
+        },
+        "outputFormat": {
+          "type": "string",
+          "enum": [
+            "markdown",
+            "text",
+            "both"
+          ],
+          "default": "markdown",
+          "description": "Output format — Choose markdown (clean Markdown, best for LLMs), text (plain text) or both. Options: markdown = Markdown; text = Plain text; both = Both."
+        },
+        "maxCharsPerResult": {
+          "type": "integer",
+          "default": 8000,
+          "minimum": 100,
+          "maximum": 100000,
+          "description": "Max characters per result — Enter the maximum characters to keep per result page, e.g. 8000. Long pages are truncated (truncated:true) to keep the response inside your LLM's context window."
+        },
+        "countryCode": {
+          "type": "string",
+          "default": "us",
+          "description": "Country code (gl) — Enter the 2-letter country code Google should localise results for, e.g. us, gb, de."
+        },
+        "languageCode": {
+          "type": "string",
+          "default": "en",
+          "description": "Language code (hl) — Enter the 2-letter interface language code, e.g. en, es, fr."
+        },
+        "includeSnippetOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "Snippet-only (cheap mode, no page fetch) — Turn this on to return only the SERP title/url/snippet for each result without fetching and reading the page — much faster and works even without page-fetch access, but markdown/text come back null."
+        }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "query"
+          ]
+        },
+        {
+          "required": [
+            "queries"
+          ]
+        },
+        {
+          "required": [
+            "urls"
+          ]
+        }
+      ]
+    },
+    "arrayFields": [
+      "queries",
+      "urls"
+    ],
+    "urlSourceFields": [],
+    "price": "$0.005 / result"
+  },
+  {
+    "name": "website_to_markdown",
+    "actor": "webdatatools~website-to-markdown",
+    "title": "Website to Markdown — Content Crawler for LLM & RAG",
+    "description": "Content Crawler turns any site into clean Markdown per page for LLMs, RAG pipelines and vector DBs — no headless browser, $1 per 1,000 pages. Billed to your own Apify account: ~$0.001 per result (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "startUrls": {
+          "type": "array",
+          "items": {},
+          "description": "Start URLs — Enter the page(s) to start crawling from, e.g. https://docs.apify.com/platform. The crawler follows links from here in breadth-first order. Example: [{\"url\":\"https://docs.apify.com/platform\"}].",
+          "minItems": 1
+        },
+        "maxPages": {
+          "type": "integer",
+          "default": 50,
+          "minimum": 1,
+          "maximum": 5000,
+          "description": "Max pages — Enter the maximum number of pages to crawl and convert, e.g. 50. This is the billed unit ($1 per 1,000 pages) — the crawl stops exactly at this count."
+        },
+        "maxDepth": {
+          "type": "integer",
+          "default": 3,
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Max link depth — Enter how many links deep to follow from a start URL, e.g. 3. Set 0 to crawl only the start URL(s)."
+        },
+        "sameDomainOnly": {
+          "type": "boolean",
+          "default": true,
+          "description": "Same domain only — Turn this on to only follow links on the same domain as the start URL (www. is treated as the same domain), and off to also follow links to other domains."
+        },
+        "includePathPrefixes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Include path prefixes — Optional. Only crawl URLs whose path starts with one of these prefixes, e.g. /docs. Leave empty to crawl every path allowed by the other settings."
+        },
+        "excludePathPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "\\.(png|jpe?g|gif|svg|webp|pdf|zip|mp4|css|js)$",
+            "/login",
+            "/signup",
+            "\\?replytocom="
+          ],
+          "description": "Exclude URL patterns — Optional. Regular expressions tested against the full URL; a match is skipped, e.g. \\.(png|jpe?g)$ to skip images. Defaults cover binary files and login/signup pages."
+        },
+        "useSitemap": {
+          "type": "boolean",
+          "default": true,
+          "description": "Seed from sitemap.xml — Turn this on to also read /sitemap.xml on each start URL's domain and add its URLs (filtered by the settings above) to the crawl queue, up to Max pages."
+        },
+        "outputFormat": {
+          "type": "string",
+          "enum": [
+            "markdown",
+            "text",
+            "both"
+          ],
+          "default": "markdown",
+          "description": "Output format — Choose what content to put in each row: Markdown only, plain text only, or both. Markdown preserves headings, lists, code blocks and tables. Options: markdown = Markdown only; text = Plain text only; both = Markdown and plain text."
+        },
+        "removeSelectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Extra CSS selectors to remove — Optional. Extra CSS selectors to strip before extracting content, e.g. .cookie-banner or #newsletter-signup, on top of the built-in nav/header/footer/aside removal."
+        },
+        "respectRobots": {
+          "type": "boolean",
+          "default": true,
+          "description": "Respect robots.txt — Turn this on to skip URLs disallowed by the site's robots.txt file (recommended and on by default)."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "startUrls"
+      ]
+    },
+    "arrayFields": [
+      "startUrls",
+      "includePathPrefixes",
+      "excludePathPatterns",
+      "removeSelectors"
+    ],
+    "urlSourceFields": [
+      "startUrls"
+    ],
+    "price": "$0.001 / result"
+  },
+  {
+    "name": "article_extractor",
+    "actor": "webdatatools~article-extractor",
+    "title": "Article & News Extractor (clean text, author, date, markdown)",
+    "description": "Article & News Extractor returns clean article text, title, author(s), publish/modified date, tags and images from any news or blog URL — one row per URL, as Markdown, plain text or HTML. Billed to your own Apify account: ~$0.002 per result (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "urls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Article URLs — Enter the article or blog post URLs to extract, one row is returned per URL, e.g. https://blog.apify.com/best-web-scraping-tools/. Works on news sites, blogs and any page that publishes a Schema.org Article/NewsArticle JSON-LD block, Open Graph tags, or a plain readable body. Example: [\"https://blog.apify.com/best-web-scraping-tools/\"].",
+          "minItems": 1
+        },
+        "outputFormat": {
+          "type": "string",
+          "enum": [
+            "markdown",
+            "text",
+            "html",
+            "all"
+          ],
+          "default": "markdown",
+          "description": "Output format — Choose which body format(s) to include in each row. \"Markdown\" is the smallest and best for LLM/RAG ingestion; \"all\" returns markdown, text and html together for debugging or comparison. Options: markdown = Markdown; text = Plain text; html = HTML; all = All (markdown + text + html)."
+        },
+        "includeImages": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include images — Keep this on to return the mainImage and images fields and keep image references in the markdown/html body. Turn it off for a smaller, text-only dataset."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "urls"
+      ]
+    },
+    "arrayFields": [
+      "urls"
+    ],
+    "urlSourceFields": [],
+    "price": "$0.002 / result"
+  },
+  {
+    "name": "structured_data_extractor",
+    "actor": "webdatatools~structured-data-extractor",
+    "title": "Structured Data & JSON-LD Extractor (Schema.org, Open Graph)",
+    "description": "Structured Data & JSON-LD Extractor reads every Schema.org JSON-LD block and Open Graph tag on a page and returns one clean row per URL — product, price, rating, article, job posting, event, recipe, FAQ and breadcrumb data, ready for RAG pipelines and SEO rich-result audits. Billed to your own Apify account: ~$0.002 per result (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "urls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "URLs — Enter the page URLs to extract structured data from, one row is returned per URL, e.g. https://www.allbirds.com/products/mens-tree-dashers. Works on product, article, job, event, recipe and FAQ pages — anything that publishes Schema.org JSON-LD or Open Graph tags. Example: [\"https://www.apify.com\"].",
+          "minItems": 1
+        },
+        "includeRawJsonLd": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include raw JSON-LD — Keep this on to also return the page's raw parsed JSON-LD documents in the jsonLd field (capped at 400 KB per row), useful when you need a schema type the mapped fields do not cover. Turn it off for a smaller, cheaper-to-store dataset."
+        },
+        "includeOpenGraph": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include Open Graph / Twitter Card data — Keep this on to return the openGraph field (og:title, og:description, og:image, og:type, og:site_name, twitter:card and related tags). Most pages publish these even without JSON-LD."
+        },
+        "followRedirects": {
+          "type": "boolean",
+          "default": true,
+          "description": "Follow redirects — Keep this on to follow HTTP redirects to the final page, e.g. a shortened or tracking URL. Turn it off to get an error row instead when a URL 301/302s, useful for auditing which URLs redirect."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "urls"
+      ]
+    },
+    "arrayFields": [
+      "urls"
+    ],
+    "urlSourceFields": [],
+    "price": "$0.002 / result"
+  },
+  {
+    "name": "google_news_scraper",
+    "actor": "webdatatools~google-news-scraper",
+    "title": "Google News Scraper (RSS search by keyword, topic, site)",
+    "description": "Google News Scraper returns headlines from Google News RSS search and topic feeds for any keyword, site: or when: query, and resolves each article's real publisher URL — one row per article. Billed to your own Apify account: ~$0.0005 per article (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "queries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Search queries — Enter Google News search terms, one row is returned per matching article. Supports Google's search operators, e.g. web scraping, \"exact phrase\", site:reuters.com AI, or -unwanted. Leave empty and use Topics below instead if you only want section feeds. Example: [\"web scraping\"].",
+          "minItems": 1
+        },
+        "topics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Section topics — Enter Google News section topics to fetch instead of (or in addition to) a search, e.g. TECHNOLOGY or BUSINESS. Accepted values: WORLD, NATION, BUSINESS, TECHNOLOGY, ENTERTAINMENT, SCIENCE, SPORTS, HEALTH. Unknown values are ignored."
+        },
+        "language": {
+          "type": "string",
+          "default": "en",
+          "description": "Language — Enter the 2-letter interface language code Google News should use, e.g. en for English or fr for French. Combined with Country to build the hl/gl/ceid feed parameters."
+        },
+        "country": {
+          "type": "string",
+          "default": "US",
+          "description": "Country — Enter the 2-letter country/edition code, e.g. US for the United States or GB for the United Kingdom. Combined with Language to build the hl/gl/ceid feed parameters."
+        },
+        "sinceDays": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 365,
+          "description": "Only articles from the last N days — Enter how many days back to search, e.g. 7 for the last week. Appends Google's when:Nd search operator to every query (topic feeds ignore this — they are always \"latest\"). Enter 0 to disable and return whatever Google's default ranking gives."
+        },
+        "maxItemsPerQuery": {
+          "type": "integer",
+          "default": 100,
+          "minimum": 1,
+          "maximum": 1000,
+          "description": "Max items per query/topic — Enter the maximum number of articles to keep per query or topic, e.g. 50. Google's own feed rarely returns more than ~100 items for a single request no matter how high this is set."
+        },
+        "resolvePublisherUrls": {
+          "type": "boolean",
+          "default": true,
+          "description": "Resolve publisher URLs — Keep this on to follow each article's news.google.com redirect link and fetch the publisher's real URL (2 extra requests per article, using an undocumented Google endpoint — best-effort, see README). Turn it off for a much faster run that only returns the Google News link."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "queries"
+      ]
+    },
+    "arrayFields": [
+      "queries",
+      "topics"
+    ],
+    "urlSourceFields": [],
+    "price": "$0.0005 / article"
+  },
+  {
+    "name": "press_release_monitor",
+    "actor": "webdatatools~press-release-monitor",
+    "title": "Press Release Monitor: PR Newswire, BusinessWire, GlobeNewswire",
+    "description": "Press Release Monitor returns keyword-matched press releases from PR Newswire, Business Wire and GlobeNewswire RSS feeds — company, publish date, category and summary, one row per release. Billed to your own Apify account: ~$0.001 per result (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "prnewswire",
+              "businesswire",
+              "globenewswire"
+            ],
+            "enumTitles": [
+              "PR Newswire",
+              "Business Wire",
+              "GlobeNewswire"
+            ]
+          },
+          "default": [
+            "prnewswire",
+            "businesswire",
+            "globenewswire"
+          ],
+          "description": "Wire sources — Select which press-release wires to read, e.g. prnewswire. Leave empty to read all three. Each source is fetched as its own public RSS feed, so a wire that is briefly unavailable produces one error row instead of failing the whole run. Options: prnewswire = PR Newswire; businesswire = Business Wire; globenewswire = GlobeNewswire."
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Keywords — Enter keywords to match against each release's title and summary, e.g. funding, acquisition. Case-insensitive substring match; a release needs only one hit to pass. Leave empty to keep every release from the selected wires."
+        },
+        "maxItemsPerSource": {
+          "type": "integer",
+          "default": 100,
+          "minimum": 1,
+          "maximum": 1000,
+          "description": "Max items per source — Enter the most releases to keep per wire after filtering, e.g. 100. Each wire's RSS feed only ever contains its latest 20-50 releases, so this mostly matters when you run on a tight schedule and want to cap cost."
+        },
+        "sinceHours": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "description": "Only releases from the last N hours — Enter how many hours back to keep releases, e.g. 24. Releases without a parseable publish date are dropped when this is set. Leave at 0 to disable the time filter and keep every release currently in the feed."
+        },
+        "includeBody": {
+          "type": "boolean",
+          "default": false,
+          "description": "Fetch full release text — Turn this on to fetch each release's page and add up to 8,000 characters of plain-text body. Only works for PR Newswire and GlobeNewswire — Business Wire's own website blocks non-browser requests, so its body is always null."
+        }
+      },
+      "additionalProperties": false
+    },
+    "arrayFields": [
+      "sources",
+      "keywords"
+    ],
+    "urlSourceFields": [],
+    "price": "$0.001 / result"
+  }
+]
