@@ -194,6 +194,157 @@
     "price": "$0.001 / result"
   },
   {
+    "name": "llms_txt_generator",
+    "actor": "webdatatools~llms-txt-generator",
+    "title": "llms.txt Generator (Website to llms.txt & llms-full.txt)",
+    "description": "Turn any website or docs site into an llms.txt (sectioned links with one-line descriptions) and llms-full.txt (every page as clean Markdown) for AI assistants, RAG and AI search. Plain HTTP, sitemap-aware, robots.txt-friendly. Billed to your own Apify account: ~$0.001 per page (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "startUrls": {
+          "type": "array",
+          "items": {},
+          "default": [
+            {
+              "url": "https://crawlee.dev/js/docs/quick-start"
+            }
+          ],
+          "description": "Start URLs — Enter the website(s) to turn into llms.txt, e.g. https://docs.apify.com. Each different domain gets its own llms.txt and llms-full.txt."
+        },
+        "maxPages": {
+          "type": "integer",
+          "default": 100,
+          "minimum": 1,
+          "maximum": 5000,
+          "description": "Max pages per website — Enter the maximum number of pages to read per website, e.g. 100. This is the billed unit (one dataset row per page)."
+        },
+        "maxDepth": {
+          "type": "integer",
+          "default": 3,
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Max link depth — Enter how many links deep to follow from a start URL, e.g. 3. Set 0 to crawl only the start URL(s)."
+        },
+        "includePathPrefixes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Include path prefixes — Optional. Only read pages whose path starts with one of these prefixes, e.g. /docs. Leave empty to stay inside the folder of each start URL (https://example.com/docs/intro → /docs), or the whole site for a home-page start URL."
+        },
+        "excludePathPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "\\.(png|jpe?g|gif|svg|webp|pdf|zip|mp4|css|js)$",
+            "/login",
+            "/signup",
+            "\\?replytocom="
+          ],
+          "description": "Exclude URL patterns — Optional. Regular expressions tested against the full URL; a match is skipped, e.g. \\.(png|jpe?g)$ to skip images. Defaults cover binary files and login/signup pages."
+        },
+        "useSitemap": {
+          "type": "boolean",
+          "default": true,
+          "description": "Seed from sitemap.xml — Turn this on to also read /sitemap.xml on each start URL's domain and add its URLs (filtered by the settings above) to the crawl queue, up to Max pages."
+        },
+        "includeMarkdown": {
+          "type": "boolean",
+          "default": true,
+          "description": "Markdown in the dataset — Turn this off to keep only title, description and token count per page in the dataset (llms-full.txt still has every page's Markdown)."
+        },
+        "removeSelectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Extra CSS selectors to remove — Optional. Extra CSS selectors to strip before extracting content, e.g. .cookie-banner or #newsletter-signup, on top of the built-in nav/header/footer/aside removal."
+        },
+        "respectRobots": {
+          "type": "boolean",
+          "default": true,
+          "description": "Respect robots.txt — Turn this on to skip URLs disallowed by the site's robots.txt file (recommended and on by default)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "arrayFields": [
+      "startUrls",
+      "includePathPrefixes",
+      "excludePathPatterns",
+      "removeSelectors"
+    ],
+    "urlSourceFields": [
+      "startUrls"
+    ],
+    "price": "$0.001 / page"
+  },
+  {
+    "name": "pdf_to_markdown",
+    "actor": "webdatatools~pdf-to-markdown",
+    "title": "PDF to Markdown Converter (Text, Headings, Metadata)",
+    "description": "Convert PDF files to clean Markdown for LLMs and RAG: headings detected from font sizes, paragraphs joined, page headers, footers and page numbers removed, plus title, author, dates, page count, links and token count. Give PDF URLs or pages that link to PDFs. Billed to your own Apify account: ~$0.002 per pdf (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pdfUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "PDF URLs — Direct links to PDF files, e.g. `https://arxiv.org/pdf/1706.03762`. Example: [\"https://arxiv.org/pdf/1706.03762\"]."
+        },
+        "pageUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Web pages with PDF links — Optional: pages whose PDF links should be converted (reports pages, document libraries, investor relations)."
+        },
+        "maxPdfsPerPage": {
+          "type": "integer",
+          "default": 20,
+          "minimum": 1,
+          "maximum": 200,
+          "description": "Max PDFs per web page — How many PDF links to take from each web page."
+        },
+        "maxPagesPerPdf": {
+          "type": "integer",
+          "default": 200,
+          "minimum": 1,
+          "maximum": 2000,
+          "description": "Max pages per PDF — Longer PDFs are cut after this many pages (`pageCount` still shows the full length)."
+        },
+        "pageMarkers": {
+          "type": "boolean",
+          "default": false,
+          "description": "Page markers in Markdown — Insert `<!-- page N -->` before each page, useful for citations in RAG."
+        },
+        "includeText": {
+          "type": "boolean",
+          "default": false,
+          "description": "Plain text too — Add a `text` field with the raw text lines next to the Markdown."
+        },
+        "includePages": {
+          "type": "boolean",
+          "default": false,
+          "description": "Text per page — Add a `pages` array: `{ page, text }` for every page."
+        }
+      },
+      "additionalProperties": false
+    },
+    "arrayFields": [
+      "pdfUrls",
+      "pageUrls"
+    ],
+    "urlSourceFields": [],
+    "price": "$0.002 / pdf"
+  },
+  {
     "name": "article_extractor",
     "actor": "webdatatools~article-extractor",
     "title": "Article & News Extractor (clean text, author, date, markdown)",

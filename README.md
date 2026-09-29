@@ -1,7 +1,7 @@
 # WebDataTools Web content for AI & RAG MCP server
 `webdatatools-rag-mcp`
 
-An MCP server with 6 web content for ai & rag tools for AI agents — Claude Desktop, Cursor, Cline or any MCP client. Web search with page text, website-to-Markdown crawling, clean article extraction, JSON-LD/structured data, Google News and press-release monitoring — ready for LLM context and RAG pipelines.
+An MCP server with 8 web content for ai & rag tools for AI agents — Claude Desktop, Cursor, Cline or any MCP client. Web search with page text, website-to-Markdown crawling, clean article extraction, JSON-LD/structured data, Google News and press-release monitoring — ready for LLM context and RAG pipelines.
 
 **This server uses *your own* Apify API token.** Every tool call runs a [WebDataTools](https://apify.com/webdatatools) Actor under your Apify account and is billed to your Apify credit — pay per result, the price is in each tool description. Your token is only sent to Apify's API.
 
@@ -36,12 +36,14 @@ Add this to `claude_desktop_config.json` (Claude Desktop) or `.cursor/mcp.json` 
 }
 ```
 
-## Tools (6)
+## Tools (8)
 
 | Tool | What it does | Price (free plan) | Backing Actor |
 |---|---|---|---|
 | `ai_web_search` | AI Web Search & Read: Google results as clean Markdown | $0.005 / result | [Actor](https://apify.com/webdatatools/ai-web-search) |
 | `website_to_markdown` | Website to Markdown — Content Crawler for LLM & RAG | $0.001 / result | [Actor](https://apify.com/webdatatools/website-to-markdown) |
+| `llms_txt_generator` | llms.txt Generator (Website to llms.txt & llms-full.txt) | $0.001 / page | [Actor](https://apify.com/webdatatools/llms-txt-generator) |
+| `pdf_to_markdown` | PDF to Markdown Converter (Text, Headings, Metadata) | $0.002 / pdf | [Actor](https://apify.com/webdatatools/pdf-to-markdown) |
 | `article_extractor` | Article & News Extractor (clean text, author, date, markdown) | $0.002 / result | [Actor](https://apify.com/webdatatools/article-extractor) |
 | `structured_data_extractor` | Structured Data & JSON-LD Extractor (Schema.org, Open Graph) | $0.002 / result | [Actor](https://apify.com/webdatatools/structured-data-extractor) |
 | `google_news_scraper` | Google News Scraper (RSS search by keyword, topic, site) | $0.0005 / article | [Actor](https://apify.com/webdatatools/google-news-scraper) |
