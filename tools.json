@@ -345,6 +345,88 @@
     "price": "$0.002 / pdf"
   },
   {
+    "name": "rag_text_chunker",
+    "actor": "webdatatools~rag-text-chunker",
+    "title": "RAG Text Chunker (Markdown to Chunks, Token Counts)",
+    "description": "Split Markdown or text into RAG-ready chunks with exact OpenAI token counts (o200k/cl100k): heading-aware, code blocks kept whole, sentence-boundary overlap, heading path on every chunk. Chunks any dataset from Website to Markdown, PDF to Markdown or your own texts. Billed to your own Apify account: ~$0.0002 per chunk (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "textField": {
+          "type": "string",
+          "description": "Text column — Optional: the dataset column holding the text, if it is not one of the usual names."
+        },
+        "documents": {
+          "type": "array",
+          "items": {},
+          "description": "Documents — Or paste documents as JSON: `[{\"url\": \"...\", \"title\": \"...\", \"text\": \"...\"}]`."
+        },
+        "texts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Texts — Or paste plain texts or Markdown, one document per item. Example: [\"# Guide\\n\\nFirst section text.\\n\\n## Details\\n\\nMore text here.\"]."
+        },
+        "chunkSize": {
+          "type": "integer",
+          "default": 500,
+          "minimum": 50,
+          "maximum": 8000,
+          "description": "Chunk size (tokens) — Maximum tokens of content per chunk (heading path and overlap come on top)."
+        },
+        "overlap": {
+          "type": "integer",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 4000,
+          "description": "Overlap (tokens) — Tokens from the end of the previous chunk repeated at the start of the next, cut at a sentence boundary. 0 for none."
+        },
+        "encoding": {
+          "type": "string",
+          "enum": [
+            "o200k_base",
+            "cl100k_base"
+          ],
+          "default": "o200k_base",
+          "description": "Tokenizer — o200k_base: GPT-4o, GPT-4.1, GPT-5, o-series. cl100k_base: GPT-4, GPT-3.5, text-embedding-3."
+        },
+        "respectHeadings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Start a chunk at each section — Never mix two sections (headings up to the level below) in one chunk."
+        },
+        "headingLevel": {
+          "type": "integer",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 6,
+          "description": "Section heading level — 2 = split at # and ## headings; 3 also at ###."
+        },
+        "includeHeadingInText": {
+          "type": "boolean",
+          "default": true,
+          "description": "Heading path in chunk text — Prefix each chunk with \"Title > Section\" so the embedding knows the context."
+        },
+        "keepFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Columns to keep — Optional: dataset or document fields copied onto every chunk, e.g. `lang`, `crawledAt`."
+        }
+      },
+      "additionalProperties": false
+    },
+    "arrayFields": [
+      "documents",
+      "texts",
+      "keepFields"
+    ],
+    "urlSourceFields": [],
+    "price": "$0.0002 / chunk"
+  },
+  {
     "name": "article_extractor",
     "actor": "webdatatools~article-extractor",
     "title": "Article & News Extractor (clean text, author, date, markdown)",
