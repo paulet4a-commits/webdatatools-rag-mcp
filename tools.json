@@ -175,6 +175,28 @@
           "type": "boolean",
           "default": true,
           "description": "Respect robots.txt — Turn this on to skip URLs disallowed by the site's robots.txt file (recommended and on by default)."
+        },
+        "chunkForRag": {
+          "type": "boolean",
+          "default": false,
+          "description": "Add RAG chunks — Turn this on to add a `chunks` array to every page: heading-aware pieces of the Markdown with the heading path and an exact GPT (o200k) token count, ready to embed. Same price — chunks are part of the page result."
+        },
+        "chunkSize": {
+          "type": "integer",
+          "default": 500,
+          "minimum": 50,
+          "maximum": 8000,
+          "description": "Chunk size (tokens) — Enter the maximum tokens per chunk when Add RAG chunks is on, e.g. 500."
+        },
+        "changeDetection": {
+          "type": "boolean",
+          "default": false,
+          "description": "Detect changes since last run — Turn this on to compare every page with the previous run that used the same start URLs and add `changeStatus`: new, changed or unchanged. Ideal for a scheduled run that keeps a vector DB fresh."
+        },
+        "skipUnchangedContent": {
+          "type": "boolean",
+          "default": true,
+          "description": "Leave content empty for unchanged pages — With change detection on, unchanged pages keep their row (url, title, changeStatus) but get empty markdown/text/chunks so you only re-embed what changed. Each page is still one result."
         }
       },
       "additionalProperties": false,
