@@ -105,7 +105,7 @@
         "startUrls": {
           "type": "array",
           "items": {},
-          "description": "Start URLs — Enter the page(s) to start crawling from, e.g. https://docs.apify.com/platform. The crawler follows links from here in breadth-first order. Example: [{\"url\":\"https://docs.apify.com/platform\"}].",
+          "description": "Start URLs — Enter the page(s) to start crawling from, e.g. https://docs.apify.com/platform. The crawler follows links from here in breadth-first order. Each page is saved to the dataset as soon as it is converted. Example: [{\"url\":\"https://docs.apify.com/platform\"}].",
           "minItems": 1
         },
         "maxPages": {
@@ -113,7 +113,7 @@
           "default": 50,
           "minimum": 1,
           "maximum": 5000,
-          "description": "Max pages — Enter the maximum number of pages to crawl and convert, e.g. 50. This is the billed unit ($1 per 1,000 pages) — the crawl stops exactly at this count."
+          "description": "Max pages — Enter the maximum number of pages to crawl and convert, e.g. 50. This is the billed unit ($1 per 1,000 pages) — the crawl stops exactly at this count. A typical site crawls at 2–10 pages per second; if the run timeout comes first, the crawl stops early and the run still ends SUCCEEDED with every page done so far."
         },
         "maxDepth": {
           "type": "integer",
