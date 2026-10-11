@@ -47,7 +47,7 @@ Add this to `claude_desktop_config.json` (Claude Desktop) or `.cursor/mcp.json` 
 | `rag_text_chunker` | RAG Text Chunker (Markdown to Chunks, Token Counts) | $0.0002 / chunk | [Actor](https://apify.com/webdatatools/rag-text-chunker) |
 | `article_extractor` | Article & News Extractor (clean text, author, date, markdown) | $0.002 / result | [Actor](https://apify.com/webdatatools/article-extractor) |
 | `structured_data_extractor` | Structured Data & JSON-LD Extractor (Schema.org, Open Graph) | $0.002 / result | [Actor](https://apify.com/webdatatools/structured-data-extractor) |
-| `google_news_scraper` | Google News Scraper (RSS search by keyword, topic, site) | $0.0005 / article | [Actor](https://apify.com/webdatatools/google-news-scraper) |
+| `google_news_scraper` | Google News Scraper (Keyword, Topic, Site, Date Range) | $0.0005 / article | [Actor](https://apify.com/webdatatools/google-news-scraper) |
 | `press_release_monitor` | Press Release Monitor: PR Newswire, BusinessWire, GlobeNewswire | $0.001 / result | [Actor](https://apify.com/webdatatools/press-release-monitor) |
 
 ## More WebDataTools MCP servers

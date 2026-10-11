@@ -102,6 +102,10 @@
     "inputSchema": {
       "type": "object",
       "properties": {
+        "url": {
+          "type": "string",
+          "description": "Single URL (fast mode for AI agents) — Optional, for AI agents and API calls. Send only {\"url\": \"https://…\"} to get that one page as Markdown in seconds: no sitemap, no link following, 1 result (MCP call-actor waits at most 45 s). When set, Start URLs and Max pages are ignored; leave it empty to crawl a site from Start URLs."
+        },
         "startUrls": {
           "type": "array",
           "items": {},
@@ -170,6 +174,19 @@
           },
           "default": [],
           "description": "Extra CSS selectors to remove — Optional. Extra CSS selectors to strip before extracting content, e.g. .cookie-banner or #newsletter-signup, on top of the built-in nav/header/footer/aside removal."
+        },
+        "maxPagesPerDomain": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5000,
+          "description": "Max pages per domain — Optional. Cap how many pages are crawled from any one domain (www. ignored), e.g. 20 when you crawl many sites or follow links off-site. Leave empty for no per-domain cap; Max pages still caps the run."
+        },
+        "maxConsecutiveFailures": {
+          "type": "integer",
+          "default": 20,
+          "minimum": 0,
+          "maximum": 1000,
+          "description": "Stop after N failed pages in a row — Stop the crawl when this many pages fail in a row (blocked site, dead host) instead of working through the whole queue. Failed pages are never charged. Default 20; set 0 to never stop for failures."
         },
         "respectRobots": {
           "type": "boolean",
@@ -538,8 +555,8 @@
   {
     "name": "google_news_scraper",
     "actor": "webdatatools~google-news-scraper",
-    "title": "Google News Scraper (RSS search by keyword, topic, site)",
-    "description": "Google News Scraper returns headlines from Google News RSS search and topic feeds for any keyword, site: or when: query, and resolves each article's real publisher URL — one row per article. Billed to your own Apify account: ~$0.0005 per article (Apify free-plan price, lower on paid plans).",
+    "title": "Google News Scraper (Keyword, Topic, Site, Date Range)",
+    "description": "Google News Scraper returns articles for any keyword, site: search or topic, with time-range presets, excluded words, 100+ results per query by date splitting and real publisher URLs. $0.50 per 1,000 articles. Billed to your own Apify account: ~$0.0005 per article (Apify free-plan price, lower on paid plans).",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -576,17 +593,46 @@
           "maximum": 365,
           "description": "Only articles from the last N days — Enter how many days back to search, e.g. 7 for the last week. Appends Google's when:Nd search operator to every query (topic feeds ignore this — they are always \"latest\"). Enter 0 to disable and return whatever Google's default ranking gives."
         },
+        "timeRange": {
+          "type": "string",
+          "enum": [
+            "1h",
+            "1d",
+            "7d",
+            "1m",
+            "1y"
+          ],
+          "description": "Time range preset — Optional. Only articles from the past hour, day, week, month or year (Google's when: operator). Overrides \"last N days\" above. Topic feeds ignore it. Options: 1h = Past hour; 1d = Past 24 hours; 7d = Past 7 days; 1m = Past 30 days; 1y = Past year."
+        },
+        "excludeWords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Exclude words — Optional. Drop articles that mention these words or phrases, e.g. crypto or \"press release\" — each becomes a -word operator on every search query."
+        },
+        "splitByDate": {
+          "type": "boolean",
+          "default": false,
+          "description": "Get more than ~100 articles per query (split by date) — A single Google News search returns at most about 100 articles. Turn this on to split each search query into date windows (after:/before:) over the time range (or last N days, else the last 30 days), dedupe across windows, and keep up to Max items per query. Needs a span of 2+ days; topic feeds are not split."
+        },
+        "maxItems": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000,
+          "description": "Max articles in total — Optional. Cap on articles for the whole run across all queries and topics (the newest are kept). Leave empty for no cap besides Max items per query and your max total charge."
+        },
         "maxItemsPerQuery": {
           "type": "integer",
           "default": 100,
           "minimum": 1,
           "maximum": 1000,
-          "description": "Max items per query/topic — Enter the maximum number of articles to keep per query or topic, e.g. 50. Google's own feed rarely returns more than ~100 items for a single request no matter how high this is set."
+          "description": "Max items per query/topic — Enter the maximum number of articles to keep per query or topic, e.g. 50. One Google News request returns at most about 100 articles; to get more for a search query, turn on Split by date."
         },
         "resolvePublisherUrls": {
           "type": "boolean",
           "default": true,
-          "description": "Resolve publisher URLs — Keep this on to follow each article's news.google.com redirect link and fetch the publisher's real URL (2 extra requests per article, using an undocumented Google endpoint — best-effort, see README). Turn it off for a much faster run that only returns the Google News link."
+          "description": "Resolve publisher URLs — Keep this on to follow each article's news.google.com redirect link and fetch the publisher's real URL (2 extra requests per article, using an undocumented Google endpoint — best-effort, see README). This is the slow part of a run (roughly 5–10 articles per second at concurrency 5): with a short run timeout the Actor stops resolving in time and still saves every article, the unresolved ones with publisherUrl null. Turn it off for a much faster run that only returns the Google News link."
         }
       },
       "additionalProperties": false,
@@ -596,7 +642,8 @@
     },
     "arrayFields": [
       "queries",
-      "topics"
+      "topics",
+      "excludeWords"
     ],
     "urlSourceFields": [],
     "price": "$0.0005 / article"
