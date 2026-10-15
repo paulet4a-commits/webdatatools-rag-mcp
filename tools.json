@@ -243,12 +243,8 @@
         "startUrls": {
           "type": "array",
           "items": {},
-          "default": [
-            {
-              "url": "https://crawlee.dev/js/docs/quick-start"
-            }
-          ],
-          "description": "Start URLs — Enter the website(s) to turn into llms.txt, e.g. https://docs.apify.com. Each different domain gets its own llms.txt and llms-full.txt."
+          "description": "Start URLs — Enter the website(s) to turn into llms.txt, e.g. https://docs.apify.com. Each different domain gets its own llms.txt and llms-full.txt. Example: [{\"url\":\"https://crawlee.dev/js/docs/quick-start\"}].",
+          "minItems": 1
         },
         "maxPages": {
           "type": "integer",
@@ -309,7 +305,10 @@
           "description": "Respect robots.txt — Turn this on to skip URLs disallowed by the site's robots.txt file (recommended and on by default)."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "startUrls"
+      ]
     },
     "arrayFields": [
       "startUrls",
@@ -335,14 +334,16 @@
           "items": {
             "type": "string"
           },
-          "description": "PDF URLs — Direct links to PDF files, e.g. `https://arxiv.org/pdf/1706.03762`. Example: [\"https://arxiv.org/pdf/1706.03762\"]."
+          "description": "PDF URLs — Direct links to PDF files, e.g. `https://arxiv.org/pdf/1706.03762`. Example: [\"https://arxiv.org/pdf/1706.03762\"].",
+          "minItems": 1
         },
         "pageUrls": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Web pages with PDF links — Optional: pages whose PDF links should be converted (reports pages, document libraries, investor relations)."
+          "description": "Web pages with PDF links — Optional: pages whose PDF links should be converted (reports pages, document libraries, investor relations).",
+          "minItems": 1
         },
         "maxPdfsPerPage": {
           "type": "integer",
@@ -374,7 +375,19 @@
           "description": "Text per page — Add a `pages` array: `{ page, text }` for every page."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "pdfUrls"
+          ]
+        },
+        {
+          "required": [
+            "pageUrls"
+          ]
+        }
+      ]
     },
     "arrayFields": [
       "pdfUrls",
@@ -398,14 +411,16 @@
         "documents": {
           "type": "array",
           "items": {},
-          "description": "Documents — Or paste documents as JSON: `[{\"url\": \"...\", \"title\": \"...\", \"text\": \"...\"}]`."
+          "description": "Documents — Or paste documents as JSON: `[{\"url\": \"...\", \"title\": \"...\", \"text\": \"...\"}]`.",
+          "minItems": 1
         },
         "texts": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Texts — Or paste plain texts or Markdown, one document per item. Example: [\"# Guide\\n\\nFirst section text.\\n\\n## Details\\n\\nMore text here.\"]."
+          "description": "Texts — Or paste plain texts or Markdown, one document per item. Example: [\"# Guide\\n\\nFirst section text.\\n\\n## Details\\n\\nMore text here.\"].",
+          "minItems": 1
         },
         "chunkSize": {
           "type": "integer",
@@ -455,7 +470,19 @@
           "description": "Columns to keep — Optional: dataset or document fields copied onto every chunk, e.g. `lang`, `crawledAt`."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "documents"
+          ]
+        },
+        {
+          "required": [
+            "texts"
+          ]
+        }
+      ]
     },
     "arrayFields": [
       "documents",

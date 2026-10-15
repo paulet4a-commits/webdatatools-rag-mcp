@@ -1,0 +1,729 @@
+{
+  "manifest_version": "0.3",
+  "name": "webdatatools-rag-mcp",
+  "display_name": "WebDataTools Web content for AI & RAG",
+  "version": "0.1.0",
+  "description": "Web content for AI & RAG tools for AI agents over MCP, backed by WebDataTools' Apify Actors. Uses your own Apify API token — billed to you, not us.",
+  "long_description": "9 web content for ai & rag tools. Web search with page text, website-to-Markdown crawling, clean article extraction, JSON-LD/structured data, Google News and press-release monitoring — ready for LLM context and RAG pipelines.\n\nEvery tool call runs a WebDataTools Actor on your own Apify account (get a free token with monthly free credit at https://console.apify.com/settings/integrations), so usage is billed to you, never to the server author. The price per result is in each tool description.",
+  "author": {
+    "name": "WebDataTools",
+    "url": "https://apify.com/webdatatools"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paulet4a-commits/webdatatools-rag-mcp"
+  },
+  "homepage": "https://apify.com/webdatatools",
+  "support": "https://github.com/paulet4a-commits/webdatatools-rag-mcp/issues",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "apify",
+    "ai-agent",
+    "rag",
+    "llm",
+    "web-search",
+    "markdown",
+    "crawler",
+    "article-extraction",
+    "news"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "bin/cli.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/bin/cli.js"
+      ],
+      "env": {
+        "APIFY_TOKEN": "${user_config.apify_token}"
+      }
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  },
+  "user_config": {
+    "apify_token": {
+      "type": "string",
+      "title": "Apify API token",
+      "description": "Your personal Apify API token. Get a free one (with monthly free credit) at https://console.apify.com/settings/integrations. Every tool call is billed to this account, never to the server author.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "tools": [
+    {
+      "name": "ai_web_search",
+      "description": "AI Web Search runs a Google search, fetches the top organic results and returns clean Markdown per result — one call turns a question into LLM-ready context for agents, RAG and MCP. Billed to your own Apify account: ~$0.005 per result (Apify free-plan price, lower on paid plans).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query — Enter a single question or search phrase, e.g. what is web scraping. Ignored if \"queries\" or \"urls\" is also set. One SERP is fetched and the top organic results are read and returned as Markdown. Example: \"what is web scraping\".",
+            "minLength": 1
+          },
+          "queries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Search queries (batch) — Enter multiple search queries to run in one call, e.g. best crm for startups. Overrides \"query\" when non-empty. Leave empty to use \"query\" instead. Example: [\"best crm for startups\"].",
+            "minItems": 1
+          },
+          "urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "URLs to read directly (skip search) — Enter specific page URLs to fetch and convert to Markdown, e.g. https://docs.apify.com/platform. When set, no Google search is performed at all — this becomes a pure URL-to-Markdown reader.",
+            "minItems": 1
+          },
+          "maxResults": {
+            "type": "integer",
+            "default": 3,
+            "minimum": 1,
+            "maximum": 20,
+            "description": "Max results per query — Enter how many organic results to read per query, e.g. 3. Each result is one billed dataset row, so 3 results costs about 3x the per-result price."
+          },
+          "outputFormat": {
+            "type": "string",
+            "enum": [
+              "markdown",
+              "text",
+              "both"
+            ],
+            "default": "markdown",
+            "description": "Output format — Choose markdown (clean Markdown, best for LLMs), text (plain text) or both. Options: markdown = Markdown; text = Plain text; both = Both."
+          },
+          "maxCharsPerResult": {
+            "type": "integer",
+            "default": 8000,
+            "minimum": 100,
+            "maximum": 100000,
+            "description": "Max characters per result — Enter the maximum characters to keep per result page, e.g. 8000. Long pages are truncated (truncated:true) to keep the response inside your LLM's context window."
+          },
+          "countryCode": {
+            "type": "string",
+            "default": "us",
+            "description": "Country code (gl) — Enter the 2-letter country code Google should localise results for, e.g. us, gb, de."
+          },
+          "languageCode": {
+            "type": "string",
+            "default": "en",
+            "description": "Language code (hl) — Enter the 2-letter interface language code, e.g. en, es, fr."
+          },
+          "includeSnippetOnly": {
+            "type": "boolean",
+            "default": false,
+            "description": "Snippet-only (cheap mode, no page fetch) — Turn this on to return only the SERP title/url/snippet for each result without fetching and reading the page — much faster and works even without page-fetch access, but markdown/text come back null."
+          }
+        },
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": [
+              "query"
+            ]
+          },
+          {
+            "required": [
+              "queries"
+            ]
+          },
+          {
+            "required": [
+              "urls"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "website_to_markdown",
+      "description": "Content Crawler turns any site into clean Markdown per page for LLMs, RAG pipelines and vector DBs — no headless browser, $1 per 1,000 pages. Billed to your own Apify account: ~$0.001 per result (Apify free-plan price, lower on paid plans).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Single URL (fast mode for AI agents) — Optional, for AI agents and API calls. Send only {\"url\": \"https://…\"} to get that one page as Markdown in seconds: no sitemap, no link following, 1 result (MCP call-actor waits at most 45 s). When set, Start URLs and Max pages are ignored; leave it empty to crawl a site from Start URLs."
+          },
+          "startUrls": {
+            "type": "array",
+            "items": {},
+            "description": "Start URLs — Enter the page(s) to start crawling from, e.g. https://docs.apify.com/platform. The crawler follows links from here in breadth-first order. Each page is saved to the dataset as soon as it is converted. Example: [{\"url\":\"https://docs.apify.com/platform\"}].",
+            "minItems": 1
+          },
+          "maxPages": {
+            "type": "integer",
+            "default": 50,
+            "minimum": 1,
+            "maximum": 5000,
+            "description": "Max pages — Enter the maximum number of pages to crawl and convert, e.g. 50. This is the billed unit ($1 per 1,000 pages) — the crawl stops exactly at this count. A typical site crawls at 2–10 pages per second; if the run timeout comes first, the crawl stops early and the run still ends SUCCEEDED with every page done so far."
+          },
+          "maxDepth": {
+            "type": "integer",
+            "default": 3,
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Max link depth — Enter how many links deep to follow from a start URL, e.g. 3. Set 0 to crawl only the start URL(s)."
+          },
+          "sameDomainOnly": {
+            "type": "boolean",
+            "default": true,
+            "description": "Same domain only — Turn this on to only follow links on the same domain as the start URL (www. is treated as the same domain), and off to also follow links to other domains."
+          },
+          "includePathPrefixes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Include path prefixes — Optional. Only crawl URLs whose path starts with one of these prefixes, e.g. /docs. Leave empty to crawl every path allowed by the other settings."
+          },
+          "excludePathPatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [
+              "\\.(png|jpe?g|gif|svg|webp|pdf|zip|mp4|css|js)$",
+              "/login",
+              "/signup",
+              "\\?replytocom="
+            ],
+            "description": "Exclude URL patterns — Optional. Regular expressions tested against the full URL; a match is skipped, e.g. \\.(png|jpe?g)$ to skip images. Defaults cover binary files and login/signup pages."
+          },
+          "useSitemap": {
+            "type": "boolean",
+            "default": true,
+            "description": "Seed from sitemap.xml — Turn this on to also read /sitemap.xml on each start URL's domain and add its URLs (filtered by the settings above) to the crawl queue, up to Max pages."
+          },
+          "outputFormat": {
+            "type": "string",
+            "enum": [
+              "markdown",
+              "text",
+              "both"
+            ],
+            "default": "markdown",
+            "description": "Output format — Choose what content to put in each row: Markdown only, plain text only, or both. Markdown preserves headings, lists, code blocks and tables. Options: markdown = Markdown only; text = Plain text only; both = Markdown and plain text."
+          },
+          "removeSelectors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Extra CSS selectors to remove — Optional. Extra CSS selectors to strip before extracting content, e.g. .cookie-banner or #newsletter-signup, on top of the built-in nav/header/footer/aside removal."
+          },
+          "maxPagesPerDomain": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5000,
+            "description": "Max pages per domain — Optional. Cap how many pages are crawled from any one domain (www. ignored), e.g. 20 when you crawl many sites or follow links off-site. Leave empty for no per-domain cap; Max pages still caps the run."
+          },
+          "maxConsecutiveFailures": {
+            "type": "integer",
+            "default": 20,
+            "minimum": 0,
+            "maximum": 1000,
+            "description": "Stop after N failed pages in a row — Stop the crawl when this many pages fail in a row (blocked site, dead host) instead of working through the whole queue. Failed pages are never charged. Default 20; set 0 to never stop for failures."
+          },
+          "respectRobots": {
+            "type": "boolean",
+            "default": true,
+            "description": "Respect robots.txt — Turn this on to skip URLs disallowed by the site's robots.txt file (recommended and on by default)."
+          },
+          "chunkForRag": {
+            "type": "boolean",
+            "default": false,
+            "description": "Add RAG chunks — Turn this on to add a `chunks` array to every page: heading-aware pieces of the Markdown with the heading path and an exact GPT (o200k) token count, ready to embed. Same price — chunks are part of the page result."
+          },
+          "chunkSize": {
+            "type": "integer",
+            "default": 500,
+            "minimum": 50,
+            "maximum": 8000,
+            "description": "Chunk size (tokens) — Enter the maximum tokens per chunk when Add RAG chunks is on, e.g. 500."
+          },
+          "changeDetection": {
+            "type": "boolean",
+            "default": false,
+            "description": "Detect changes since last run — Turn this on to compare every page with the previous run that used the same start URLs and add `changeStatus`: new, changed or unchanged. Ideal for a scheduled run that keeps a vector DB fresh."
+          },
+          "skipUnchangedContent": {
+            "type": "boolean",
+            "default": true,
+            "description": "Leave content empty for unchanged pages — With change detection on, unchanged pages keep their row (url, title, changeStatus) but get empty markdown/text/chunks so you only re-embed what changed. Each page is still one result."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "startUrls"
+        ]
+      }
+    },
+    {
+      "name": "llms_txt_generator",
+      "description": "Turn any website or docs site into an llms.txt (sectioned links with one-line descriptions) and llms-full.txt (every page as clean Markdown) for AI assistants, RAG and AI search. Plain HTTP, sitemap-aware, robots.txt-friendly. Billed to your own Apify account: ~$0.001 per page (Apify free-plan price, lower on paid plans).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "startUrls": {
+            "type": "array",
+            "items": {},
+            "description": "Start URLs — Enter the website(s) to turn into llms.txt, e.g. https://docs.apify.com. Each different domain gets its own llms.txt and llms-full.txt. Example: [{\"url\":\"https://crawlee.dev/js/docs/quick-start\"}].",
+            "minItems": 1
+          },
+          "maxPages": {
+            "type": "integer",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 5000,
+            "description": "Max pages per website — Enter the maximum number of pages to read per website, e.g. 100. This is the billed unit (one dataset row per page)."
+          },
+          "maxDepth": {
+            "type": "integer",
+            "default": 3,
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Max link depth — Enter how many links deep to follow from a start URL, e.g. 3. Set 0 to crawl only the start URL(s)."
+          },
+          "includePathPrefixes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Include path prefixes — Optional. Only read pages whose path starts with one of these prefixes, e.g. /docs. Leave empty to stay inside the folder of each start URL (https://example.com/docs/intro → /docs), or the whole site for a home-page start URL."
+          },
+          "excludePathPatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [
+              "\\.(png|jpe?g|gif|svg|webp|pdf|zip|mp4|css|js)$",
+              "/login",
+              "/signup",
+              "\\?replytocom="
+            ],
+            "description": "Exclude URL patterns — Optional. Regular expressions tested against the full URL; a match is skipped, e.g. \\.(png|jpe?g)$ to skip images. Defaults cover binary files and login/signup pages."
+          },
+          "useSitemap": {
+            "type": "boolean",
+            "default": true,
+            "description": "Seed from sitemap.xml — Turn this on to also read /sitemap.xml on each start URL's domain and add its URLs (filtered by the settings above) to the crawl queue, up to Max pages."
+          },
+          "includeMarkdown": {
+            "type": "boolean",
+            "default": true,
+            "description": "Markdown in the dataset — Turn this off to keep only title, description and token count per page in the dataset (llms-full.txt still has every page's Markdown)."
+          },
+          "removeSelectors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Extra CSS selectors to remove — Optional. Extra CSS selectors to strip before extracting content, e.g. .cookie-banner or #newsletter-signup, on top of the built-in nav/header/footer/aside removal."
+          },
+          "respectRobots": {
+            "type": "boolean",
+            "default": true,
+            "description": "Respect robots.txt — Turn this on to skip URLs disallowed by the site's robots.txt file (recommended and on by default)."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "startUrls"
+        ]
+      }
+    },
+    {
+      "name": "pdf_to_markdown",
+      "description": "Convert PDF files to clean Markdown for LLMs and RAG: headings detected from font sizes, paragraphs joined, page headers, footers and page numbers removed, plus title, author, dates, page count, links and token count. Give PDF URLs or pages that link to PDFs. Billed to your own Apify account: ~$0.002 per pdf (Apify free-plan price, lower on paid plans).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pdfUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "PDF URLs — Direct links to PDF files, e.g. `https://arxiv.org/pdf/1706.03762`. Example: [\"https://arxiv.org/pdf/1706.03762\"].",
+            "minItems": 1
+          },
+          "pageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Web pages with PDF links — Optional: pages whose PDF links should be converted (reports pages, document libraries, investor relations).",
+            "minItems": 1
+          },
+          "maxPdfsPerPage": {
+            "type": "integer",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 200,
+            "description": "Max PDFs per web page — How many PDF links to take from each web page."
+          },
+          "maxPagesPerPdf": {
+            "type": "integer",
+            "default": 200,
+            "minimum": 1,
+            "maximum": 2000,
+            "description": "Max pages per PDF — Longer PDFs are cut after this many pages (`pageCount` still shows the full length)."
+          },
+          "pageMarkers": {
+            "type": "boolean",
+            "default": false,
+            "description": "Page markers in Markdown — Insert `<!-- page N -->` before each page, useful for citations in RAG."
+          },
+          "includeText": {
+            "type": "boolean",
+            "default": false,
+            "description": "Plain text too — Add a `text` field with the raw text lines next to the Markdown."
+          },
+          "includePages": {
+            "type": "boolean",
+            "default": false,
+            "description": "Text per page — Add a `pages` array: `{ page, text }` for every page."
+          }
+        },
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": [
+              "pdfUrls"
+            ]
+          },
+          {
+            "required": [
+              "pageUrls"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "rag_text_chunker",
+      "description": "Split Markdown or text into RAG-ready chunks with exact OpenAI token counts (o200k/cl100k): heading-aware, code blocks kept whole, sentence-boundary overlap, heading path on every chunk. Chunks any dataset from Website to Markdown, PDF to Markdown or your own texts. Billed to your own Apify account: ~$0.0002 per chunk (Apify free-plan price, lower on paid plans).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "textField": {
+            "type": "string",
+            "description": "Text column — Optional: the dataset column holding the text, if it is not one of the usual names."
+          },
+          "documents": {
+            "type": "array",
+            "items": {},
+            "description": "Documents — Or paste documents as JSON: `[{\"url\": \"...\", \"title\": \"...\", \"text\": \"...\"}]`.",
+            "minItems": 1
+          },
+          "texts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Texts — Or paste plain texts or Markdown, one document per item. Example: [\"# Guide\\n\\nFirst section text.\\n\\n## Details\\n\\nMore text here.\"].",
+            "minItems": 1
+          },
+          "chunkSize": {
+            "type": "integer",
+            "default": 500,
+            "minimum": 50,
+            "maximum": 8000,
+            "description": "Chunk size (tokens) — Maximum tokens of content per chunk (heading path and overlap come on top)."
+          },
+          "overlap": {
+            "type": "integer",
+            "default": 50,
+            "minimum": 0,
+            "maximum": 4000,
+            "description": "Overlap (tokens) — Tokens from the end of the previous chunk repeated at the start of the next, cut at a sentence boundary. 0 for none."
+          },
+          "encoding": {
+            "type": "string",
+            "enum": [
+              "o200k_base",
+              "cl100k_base"
+            ],
+            "default": "o200k_base",
+            "description": "Tokenizer — o200k_base: GPT-4o, GPT-4.1, GPT-5, o-series. cl100k_base: GPT-4, GPT-3.5, text-embedding-3."
+          },
+          "respectHeadings": {
+            "type": "boolean",
+            "default": true,
+            "description": "Start a chunk at each section — Never mix two sections (headings up to the level below) in one chunk."
+          },
+          "headingLevel": {
+            "type": "integer",
+            "default": 2,
+            "minimum": 1,
+            "maximum": 6,
+            "description": "Section heading level — 2 = split at # and ## headings; 3 also at ###."
+          },
+          "includeHeadingInText": {
+            "type": "boolean",
+            "default": true,
+            "description": "Heading path in chunk text — Prefix each chunk with \"Title > Section\" so the embedding knows the context."
+          },
+          "keepFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Columns to keep — Optional: dataset or document fields copied onto every chunk, e.g. `lang`, `crawledAt`."
+          }
+        },
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": [
+              "documents"
+            ]
+          },
+          {
+            "required": [
+              "texts"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "article_extractor",
+      "description": "Article & News Extractor returns clean article text, title, author(s), publish/modified date, tags and images from any news or blog URL — one row per URL, as Markdown, plain text or HTML. Billed to your own Apify account: ~$0.002 per result (Apify free-plan price, lower on paid plans).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Article URLs — Enter the article or blog post URLs to extract, one row is returned per URL, e.g. https://blog.apify.com/best-web-scraping-tools/. Works on news sites, blogs and any page that publishes a Schema.org Article/NewsArticle JSON-LD block, Open Graph tags, or a plain readable body. Example: [\"https://blog.apify.com/best-web-scraping-tools/\"].",
+            "minItems": 1
+          },
+          "outputFormat": {
+            "type": "string",
+            "enum": [
+              "markdown",
+              "text",
+              "html",
+              "all"
+            ],
+            "default": "markdown",
+            "description": "Output format — Choose which body format(s) to include in each row. \"Markdown\" is the smallest and best for LLM/RAG ingestion; \"all\" returns markdown, text and html together for debugging or comparison. Options: markdown = Markdown; text = Plain text; html = HTML; all = All (markdown + text + html)."
+          },
+          "includeImages": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include images — Keep this on to return the mainImage and images fields and keep image references in the markdown/html body. Turn it off for a smaller, text-only dataset."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "urls"
+        ]
+      }
+    },
+    {
+      "name": "structured_data_extractor",
+      "description": "Structured Data & JSON-LD Extractor reads every Schema.org JSON-LD block and Open Graph tag on a page and returns one clean row per URL — product, price, rating, article, job posting, event, recipe, FAQ and breadcrumb data, ready for RAG pipelines and SEO rich-result audits. Billed to your own Apify account: ~$0.002 per result (Apify free-plan price, lower on paid plans).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "URLs — Enter the page URLs to extract structured data from, one row is returned per URL, e.g. https://www.allbirds.com/products/mens-tree-dashers. Works on product, article, job, event, recipe and FAQ pages — anything that publishes Schema.org JSON-LD or Open Graph tags. Example: [\"https://www.apify.com\"].",
+            "minItems": 1
+          },
+          "includeRawJsonLd": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include raw JSON-LD — Keep this on to also return the page's raw parsed JSON-LD documents in the jsonLd field (capped at 400 KB per row), useful when you need a schema type the mapped fields do not cover. Turn it off for a smaller, cheaper-to-store dataset."
+          },
+          "includeOpenGraph": {
+            "type": "boolean",
+            "default": true,
+            "description": "Include Open Graph / Twitter Card data — Keep this on to return the openGraph field (og:title, og:description, og:image, og:type, og:site_name, twitter:card and related tags). Most pages publish these even without JSON-LD."
+          },
+          "followRedirects": {
+            "type": "boolean",
+            "default": true,
+            "description": "Follow redirects — Keep this on to follow HTTP redirects to the final page, e.g. a shortened or tracking URL. Turn it off to get an error row instead when a URL 301/302s, useful for auditing which URLs redirect."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "urls"
+        ]
+      }
+    },
+    {
+      "name": "google_news_scraper",
+      "description": "Google News Scraper returns articles for any keyword, site: search or topic, with time-range presets, excluded words, 100+ results per query by date splitting and real publisher URLs. $0.50 per 1,000 articles. Billed to your own Apify account: ~$0.0005 per article (Apify free-plan price, lower on paid plans).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "queries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Search queries — Enter Google News search terms, one row is returned per matching article. Supports Google's search operators, e.g. web scraping, \"exact phrase\", site:reuters.com AI, or -unwanted. Leave empty and use Topics below instead if you only want section feeds. Example: [\"web scraping\"].",
+            "minItems": 1
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Section topics — Enter Google News section topics to fetch instead of (or in addition to) a search, e.g. TECHNOLOGY or BUSINESS. Accepted values: WORLD, NATION, BUSINESS, TECHNOLOGY, ENTERTAINMENT, SCIENCE, SPORTS, HEALTH. Unknown values are ignored."
+          },
+          "language": {
+            "type": "string",
+            "default": "en",
+            "description": "Language — Enter the 2-letter interface language code Google News should use, e.g. en for English or fr for French. Combined with Country to build the hl/gl/ceid feed parameters."
+          },
+          "country": {
+            "type": "string",
+            "default": "US",
+            "description": "Country — Enter the 2-letter country/edition code, e.g. US for the United States or GB for the United Kingdom. Combined with Language to build the hl/gl/ceid feed parameters."
+          },
+          "sinceDays": {
+            "type": "integer",
+            "default": 0,
+            "minimum": 0,
+            "maximum": 365,
+            "description": "Only articles from the last N days — Enter how many days back to search, e.g. 7 for the last week. Appends Google's when:Nd search operator to every query (topic feeds ignore this — they are always \"latest\"). Enter 0 to disable and return whatever Google's default ranking gives."
+          },
+          "timeRange": {
+            "type": "string",
+            "enum": [
+              "1h",
+              "1d",
+              "7d",
+              "1m",
+              "1y"
+            ],
+            "description": "Time range preset — Optional. Only articles from the past hour, day, week, month or year (Google's when: operator). Overrides \"last N days\" above. Topic feeds ignore it. Options: 1h = Past hour; 1d = Past 24 hours; 7d = Past 7 days; 1m = Past 30 days; 1y = Past year."
+          },
+          "excludeWords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Exclude words — Optional. Drop articles that mention these words or phrases, e.g. crypto or \"press release\" — each becomes a -word operator on every search query."
+          },
+          "splitByDate": {
+            "type": "boolean",
+            "default": false,
+            "description": "Get more than ~100 articles per query (split by date) — A single Google News search returns at most about 100 articles. Turn this on to split each search query into date windows (after:/before:) over the time range (or last N days, else the last 30 days), dedupe across windows, and keep up to Max items per query. Needs a span of 2+ days; topic feeds are not split."
+          },
+          "maxItems": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000,
+            "description": "Max articles in total — Optional. Cap on articles for the whole run across all queries and topics (the newest are kept). Leave empty for no cap besides Max items per query and your max total charge."
+          },
+          "maxItemsPerQuery": {
+            "type": "integer",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "Max items per query/topic — Enter the maximum number of articles to keep per query or topic, e.g. 50. One Google News request returns at most about 100 articles; to get more for a search query, turn on Split by date."
+          },
+          "resolvePublisherUrls": {
+            "type": "boolean",
+            "default": true,
+            "description": "Resolve publisher URLs — Keep this on to follow each article's news.google.com redirect link and fetch the publisher's real URL (2 extra requests per article, using an undocumented Google endpoint — best-effort, see README). This is the slow part of a run (roughly 5–10 articles per second at concurrency 5): with a short run timeout the Actor stops resolving in time and still saves every article, the unresolved ones with publisherUrl null. Turn it off for a much faster run that only returns the Google News link."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "queries"
+        ]
+      }
+    },
+    {
+      "name": "press_release_monitor",
+      "description": "Press Release Monitor returns keyword-matched press releases from PR Newswire, Business Wire and GlobeNewswire RSS feeds — company, publish date, category and summary, one row per release. Billed to your own Apify account: ~$0.001 per result (Apify free-plan price, lower on paid plans).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "prnewswire",
+                "businesswire",
+                "globenewswire"
+              ],
+              "enumTitles": [
+                "PR Newswire",
+                "Business Wire",
+                "GlobeNewswire"
+              ]
+            },
+            "default": [
+              "prnewswire",
+              "businesswire",
+              "globenewswire"
+            ],
+            "description": "Wire sources — Select which press-release wires to read, e.g. prnewswire. Leave empty to read all three. Each source is fetched as its own public RSS feed, so a wire that is briefly unavailable produces one error row instead of failing the whole run. Options: prnewswire = PR Newswire; businesswire = Business Wire; globenewswire = GlobeNewswire."
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Keywords — Enter keywords to match against each release's title and summary, e.g. funding, acquisition. Case-insensitive substring match; a release needs only one hit to pass. Leave empty to keep every release from the selected wires."
+          },
+          "maxItemsPerSource": {
+            "type": "integer",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "Max items per source — Enter the most releases to keep per wire after filtering, e.g. 100. Each wire's RSS feed only ever contains its latest 20-50 releases, so this mostly matters when you run on a tight schedule and want to cap cost."
+          },
+          "sinceHours": {
+            "type": "integer",
+            "default": 0,
+            "minimum": 0,
+            "description": "Only releases from the last N hours — Enter how many hours back to keep releases, e.g. 24. Releases without a parseable publish date are dropped when this is set. Leave at 0 to disable the time filter and keep every release currently in the feed."
+          },
+          "includeBody": {
+            "type": "boolean",
+            "default": false,
+            "description": "Fetch full release text — Turn this on to fetch each release's page and add up to 8,000 characters of plain-text body. Only works for PR Newswire and GlobeNewswire — Business Wire's own website blocks non-browser requests, so its body is always null."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}
