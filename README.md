@@ -1,7 +1,7 @@
 # WebDataTools Web content for AI & RAG MCP server
 `webdatatools-rag-mcp`
 
-An MCP server with 10 web content for ai & rag tools for AI agents — Claude Desktop, Cursor, Cline or any MCP client. Web search with page text, website-to-Markdown crawling, clean article extraction, JSON-LD/structured data, Google News and press-release monitoring — ready for LLM context and RAG pipelines.
+An MCP server with 12 web content for ai & rag tools for AI agents — Claude Desktop, Cursor, Cline or any MCP client. Web search with page text, website-to-Markdown crawling, clean article extraction, JSON-LD/structured data, Google News and press-release monitoring — ready for LLM context and RAG pipelines.
 
 **This server uses *your own* Apify API token.** Every tool call runs a [WebDataTools](https://apify.com/webdatatools) Actor under your Apify account and is billed to your Apify credit — pay per result, the price is in each tool description. Your token is only sent to Apify's API.
 
@@ -36,7 +36,7 @@ Add this to `claude_desktop_config.json` (Claude Desktop) or `.cursor/mcp.json` 
 }
 ```
 
-## Tools (10)
+## Tools (12)
 
 | Tool | What it does | Price (free plan) | Backing Actor |
 |---|---|---|---|
@@ -50,6 +50,8 @@ Add this to `claude_desktop_config.json` (Claude Desktop) or `.cursor/mcp.json` 
 | `google_news_scraper` | Google News Scraper (Keyword, Topic, Site, Date Range) | $0.0005 / article | [Actor](https://apify.com/webdatatools/google-news-scraper) |
 | `press_release_monitor` | Press Release Monitor: PR Newswire, BusinessWire, GlobeNewswire | $0.001 / result | [Actor](https://apify.com/webdatatools/press-release-monitor) |
 | `medium_scraper` | Medium Scraper (Articles, Claps, Tags, Reading Time) | $0.004 / article | [Actor](https://apify.com/webdatatools/medium-scraper) |
+| `google_ai_overviews_scraper` | Google AI Overviews Scraper (AI Overview Answers and Sources) | $0.0125 / AI Overview | [Actor](https://apify.com/webdatatools/google-ai-overviews-scraper) |
+| `rss_feed_reader` | RSS Feed Reader (RSS and Atom Items) | $0.0005 / item | [Actor](https://apify.com/webdatatools/rss-feed-reader) |
 
 ## More WebDataTools MCP servers
 

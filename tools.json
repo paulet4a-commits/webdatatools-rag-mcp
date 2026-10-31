@@ -129,7 +129,7 @@
         "sameDomainOnly": {
           "type": "boolean",
           "default": true,
-          "description": "Same domain only — Turn this on to only follow links on the same domain as the start URL (www. is treated as the same domain), and off to also follow links to other domains."
+          "description": "Same domain only — Turn this on to follow links only on any supplied start domain (www. counts as the same). With multiple start domains, each is allowed; other domains are excluded. Turn it off to allow other domains."
         },
         "includePathPrefixes": {
           "type": "array",
@@ -812,5 +812,97 @@
     ],
     "urlSourceFields": [],
     "price": "$0.004 / article"
+  },
+  {
+    "name": "google_ai_overviews_scraper",
+    "actor": "webdatatools~google-ai-overviews-scraper",
+    "title": "Google AI Overviews Scraper (AI Overview Answers and Sources)",
+    "description": "Google AI Overviews Scraper returns the AI Overview answer for a query: answer text, bullet points and the cited sources with titles and URLs. Uses the Apify GOOGLE_SERP proxy, no browser. Billed to your own Apify account: ~$0.0125 per AI Overview (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "queries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Search queries — Questions or keywords to search in Google, one per line, e.g. how does solar power work. Queries without an AI Overview are returned with hasOverview false and are not charged. Example: [\"how does solar power work\"].",
+          "minItems": 1
+        },
+        "countryCode": {
+          "type": "string",
+          "default": "us",
+          "description": "Country (gl) — Two-letter country code that Google uses for the results, e.g. us, gb, de. AI Overviews are not shown for every country."
+        },
+        "languageCode": {
+          "type": "string",
+          "default": "en",
+          "description": "Language (hl) — Two-letter interface language code, e.g. en, de, fr."
+        },
+        "includeNoOverview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Return queries without an AI Overview — When on, every query gets a row even if Google shows no AI Overview (hasOverview false, not charged). Turn off to get only the queries that have an overview."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "queries"
+      ]
+    },
+    "arrayFields": [
+      "queries"
+    ],
+    "urlSourceFields": [],
+    "price": "$0.0125 / AI Overview"
+  },
+  {
+    "name": "rss_feed_reader",
+    "actor": "webdatatools~rss-feed-reader",
+    "title": "RSS Feed Reader (RSS and Atom Items)",
+    "description": "Read RSS and Atom feeds from any URL, or find the feed on a web page, and get one row per item: title, link, author, published date, categories, summary and image. Filter by date. Pay per item. Billed to your own Apify account: ~$0.0005 per item (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "urls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Feed or page URLs — RSS, Atom or feed-linking web page URLs, one per entry, e.g. `https://xkcd.com/rss.xml`. A normal web page is read for its `<link rel=\"alternate\">` feed. Example: [\"https://blog.rust-lang.org/feed.xml\"].",
+          "minItems": 1
+        },
+        "sinceDate": {
+          "type": "string",
+          "description": "Only items published since — ISO date, e.g. `2026-10-01`. Items with an older date are skipped. Items without a date are kept."
+        },
+        "maxItemsPerFeed": {
+          "type": "integer",
+          "default": 50,
+          "minimum": 1,
+          "maximum": 1000,
+          "description": "Max items per feed — Newest items to keep from each feed, e.g. `50`. Feeds usually hold 10 to 100 items."
+        },
+        "includeContent": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include full content — Adds the full item body as plain text (content:encoded or content). Off keeps rows short."
+        },
+        "discoverFeeds": {
+          "type": "boolean",
+          "default": true,
+          "description": "Find feeds on web pages — When a URL is an HTML page, follow its `<link rel=\"alternate\">` feed links (up to 5)."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "urls"
+      ]
+    },
+    "arrayFields": [
+      "urls"
+    ],
+    "urlSourceFields": [],
+    "price": "$0.0005 / item"
   }
 ]
