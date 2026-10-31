@@ -740,5 +740,62 @@
     ],
     "urlSourceFields": [],
     "price": "$0.001 / result"
+  },
+  {
+    "name": "medium_scraper",
+    "actor": "webdatatools~medium-scraper",
+    "title": "Medium Scraper (Articles, Claps, Tags, Reading Time)",
+    "description": "Scrape Medium stories by tag, author or publication: title, subtitle, author, date, claps, responses, tags, reading time, word count, link and optional full text. Billed to your own Apify account: ~$0.004 per article (Apify free-plan price, lower on paid plans).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "javascript"
+          ],
+          "description": "Tags — Medium tag slugs, e.g. `javascript` or `machine-learning`. Full tag URLs also work. Each tag page shows about 30 stories."
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Authors — Author handles, e.g. `@addyosmani`, or profile URLs. Each profile shows its latest stories."
+        },
+        "publications": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Publications — Publication slugs, e.g. `towards-data-science` (the part after medium.com/). Publication feeds hold the latest stories."
+        },
+        "maxArticlesPerSource": {
+          "type": "integer",
+          "default": 20,
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Max articles per tag, author or publication — Stories to collect from each source. Medium shows about 30 per tag and about 10 per feed."
+        },
+        "includeFullText": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include full article text — Also save the article body as plain text (one request per article, members-only stories show only what Medium exposes)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "arrayFields": [
+      "tags",
+      "authors",
+      "publications"
+    ],
+    "urlSourceFields": [],
+    "price": "$0.004 / article"
   }
 ]
