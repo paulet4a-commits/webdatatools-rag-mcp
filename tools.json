@@ -754,26 +754,24 @@
           "items": {
             "type": "string"
           },
-          "default": [
-            "javascript"
-          ],
-          "description": "Tags — Medium tag slugs, e.g. `javascript` or `machine-learning`. Full tag URLs also work. Each tag page shows about 30 stories."
+          "description": "Tags — Medium tag slugs, e.g. `javascript` or `machine-learning`. Full tag URLs also work. Each tag page shows about 30 stories. Example: [\"javascript\"].",
+          "minItems": 1
         },
         "authors": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "default": [],
-          "description": "Authors — Author handles, e.g. `@addyosmani`, or profile URLs. Each profile shows its latest stories."
+          "description": "Authors — Author handles, e.g. `@addyosmani`, or profile URLs. Each profile shows its latest stories. Example: [].",
+          "minItems": 1
         },
         "publications": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "default": [],
-          "description": "Publications — Publication slugs, e.g. `towards-data-science` (the part after medium.com/). Publication feeds hold the latest stories."
+          "description": "Publications — Publication slugs, e.g. `towards-data-science` (the part after medium.com/). Publication feeds hold the latest stories. Example: [].",
+          "minItems": 1
         },
         "maxArticlesPerSource": {
           "type": "integer",
@@ -788,7 +786,24 @@
           "description": "Include full article text — Also save the article body as plain text (one request per article, members-only stories show only what Medium exposes)."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "tags"
+          ]
+        },
+        {
+          "required": [
+            "authors"
+          ]
+        },
+        {
+          "required": [
+            "publications"
+          ]
+        }
+      ]
     },
     "arrayFields": [
       "tags",
